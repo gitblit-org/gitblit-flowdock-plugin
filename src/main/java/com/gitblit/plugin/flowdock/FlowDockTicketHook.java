@@ -96,8 +96,6 @@ public class FlowDockTicketHook extends TicketHook {
 			return;
 		}
 
-    	IRepositoryManager repositoryManager = GitblitContext.getManager(IRepositoryManager.class);
-    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
     	String ticketUrl = getUrl(ticket);
 
 		Set<TicketModel.Field> fieldExclusions = new HashSet<TicketModel.Field>();
@@ -107,6 +105,7 @@ public class FlowDockTicketHook extends TicketHook {
     	Change change = ticket.changes.get(0);
     	IUserManager userManager = GitblitContext.getManager(IUserManager.class);
     	UserModel authorModel = userManager.getUserModel(change.author);
+    	String subject = getSubject(ticket, String.format("new %s ticket", ticket.type));
 
     	StringBuilder sb = new StringBuilder();
     	sb.append(String.format("<b>%s</b> has created <b>%s</b> <a href=\"%s\">ticket-%s</a>", authorModel.getDisplayName(),
@@ -114,23 +113,12 @@ public class FlowDockTicketHook extends TicketHook {
 
     	fields(sb, ticket, ticket.changes.get(0), fieldExclusions);
 
-		String project = repositoryManager.getRepositoryModel(ticket.repository).projectPath;
-		ProjectModel projectModel = projectManager.getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
-
-    	String subject = getSubject(ticket);
-    	List<String> tags = getTags(ticket);
-
     	Payload payload = new Payload()
     		.from(authorModel)
     		.subject(subject)
     		.content(sb.toString())
-    		.project(project)
-    		.tags(tags)
+    		.project(getProject(ticket))
+    		.tags(getTags(ticket))
     		.link(ticketUrl);
 
    		flowdock.sendAsync(payload);
@@ -151,12 +139,15 @@ public class FlowDockTicketHook extends TicketHook {
 		String author = "<b>" + authorModel.getDisplayName() + "</b>";
 		String url = String.format("<a href=\"%s\">ticket-%s</a>", getUrl(ticket), ticket.number);
 		String repo = "<b>" + StringUtils.stripDotGit(ticket.repository) + "</b>";
+		String subject = null;
 		String msg = null;
 
 		if (change.hasReview()) {
 			/*
 			 * Patchset review
 			 */
+			subject = getSubject(ticket, String.format("reviewed patchset %s-%s",
+					change.patchset.number, change.patchset.rev));
 			StringBuilder sb = new StringBuilder();
     		sb.append(String.format("%s has reviewed %s %s patchset %s-%s", author, repo, url,
     				change.patchset.number, change.patchset.rev));
@@ -196,7 +187,8 @@ public class FlowDockTicketHook extends TicketHook {
 			/*
 			 * New Patchset
 			 */
-			String tip = change.patchset.tip;
+			Patchset ps = change.patchset;
+			String tip = ps.tip;
 			String base;
 			String leadIn;
 			if (change.patchset.rev == 1) {
@@ -204,22 +196,25 @@ public class FlowDockTicketHook extends TicketHook {
 					/*
 					 * Initial proposal
 					 */
+					subject = getSubject(ticket, "proposal pushed");
 					leadIn = String.format("%s has pushed a proposal for %s %s", author, repo, url);
 				} else {
 					/*
 					 * Rewritten patchset
 					 */
+					subject = getSubject(ticket, String.format("patchset %s pushed (%s)", ps.number, ps.type));
 					leadIn = String.format("%s has rewritten the patchset for %s %s (%s)",
-							author, repo, url, change.patchset.type);
+							author, repo, url, ps.type);
 				}
 				base = change.patchset.base;
 			} else {
 				/*
 				 * Fast-forward patchset update
 				 */
-				leadIn = String.format("%s has added %s %s to %s %s", author, change.patchset.added,
-						change.patchset.added == 1 ? "commit" : "commits", repo, url);
-				Patchset prev = ticket.getPatchset(change.patchset.number, change.patchset.rev - 1);
+				String noun = ps.added == 1 ? "commit" : "commits";
+				subject = getSubject(ticket, String.format("added %s %s", ps.added, noun));
+				leadIn = String.format("%s has added %s %s to %s %s", author, ps.added, noun, repo, url);
+				Patchset prev = ticket.getPatchset(ps.number, ps.rev - 1);
 				base = prev.tip;
 			}
 
@@ -281,16 +276,19 @@ public class FlowDockTicketHook extends TicketHook {
 			/*
 			 * Merged
 			 */
+			subject = getSubject(ticket, String.format("merged to %s", ticket.mergeTo));
 			msg = String.format("%s has merged %s %s to <b>%s</b>", author, repo, url, ticket.mergeTo);
 		} else if (change.isStatusChange()) {
 			/*
 			 * Status Change
 			 */
+			subject = getSubject(ticket, String.format("status changed to %s", ticket.status));
 			msg = String.format("%s has changed the status of %s %s", author, repo, url);
 		} else if (change.hasComment() && settings.getBoolean(Plugin.SETTING_POST_TICKET_COMMENTS, true)) {
 			/*
 			 * Comment
 			 */
+			subject = getSubject(ticket, "comment added");
 			msg = String.format("%s has commented on %s %s", author, repo, url);
 		}
 
@@ -308,57 +306,62 @@ public class FlowDockTicketHook extends TicketHook {
 		}
 
     	IRepositoryManager repositoryManager = GitblitContext.getManager(IRepositoryManager.class);
-    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
 		RepositoryModel repository = repositoryManager.getRepositoryModel(ticket.repository);
 
     	String ticketUrl = getUrl(ticket);
-		String project = repository.projectPath;
-		ProjectModel projectModel = projectManager.getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
-
-    	String subject = getSubject(ticket);
-    	List<String> tags = getTags(ticket);
 
     	Payload payload = new Payload()
     		.from(authorModel)
     		.subject(subject)
     		.content(sb.toString())
-    		.project(project)
-    		.tags(tags)
+    		.project(getProject(ticket))
+    		.tags(getTags(ticket))
     		.link(ticketUrl);
 
    		flowdock.setFlow(repository, payload);
    		flowdock.sendAsync(payload);
     }
 
-	protected String getSubject(TicketModel ticket) {
-		Change lastChange = ticket.changes.get(ticket.changes.size() - 1);
-		boolean newTicket = lastChange.isStatusChange() && ticket.changes.size() == 1;
-		String re = newTicket ? "" : "Re: ";
-		String subject = MessageFormat.format("{0}[{1}] {2} (#-{3,number,0})",
-				re, StringUtils.stripDotGit(ticket.repository), ticket.title, ticket.number);
-		return subject;
+	protected String getSubject(TicketModel ticket, String message) {
+		return String.format("[%s-%s] %s", StringUtils.stripDotGit(ticket.repository), ticket.number, ticket.title);
+	}
+
+	protected String getProject(TicketModel ticket) {
+//		return StringUtils.stripDotGit(ticket.repository);
+    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
+    	String project = StringUtils.getFirstPathElement(ticket.repository);
+		ProjectModel projectModel = projectManager.getProjectModel(project);
+		if (projectModel != null) {
+			if (!StringUtils.isEmpty(projectModel.title)) {
+				project = projectModel.title;
+			}
+		}
+		return project;
 	}
 
 	protected List<String> getTags(TicketModel ticket) {
     	List<String> tags = new ArrayList<String>();
+    	tags.add("ticket-" + ticket.number);
     	tags.add(ticket.type.name().toLowerCase());
+    	tags.addAll(settings.getStrings(Plugin.SETTING_FIXED_TICKET_TAGS));
 
     	List<String> labels = ticket.getLabels();
     	if (!ArrayUtils.isEmpty(labels)) {
     		tags.addAll(labels);
     	}
+
     	if (!StringUtils.isEmpty(ticket.topic)) {
-    		tags.add(ticket.topic);
+    		String [] values = ticket.topic.split(" ");
+    		for (String value : values) {
+    			if (!StringUtils.isEmpty(value)) {
+    				tags.add(value);
+    			}
+    		}
     	}
+
     	if (!StringUtils.isEmpty(ticket.milestone)) {
-    		tags.add(ticket.milestone);
+    		tags.add(Payload.sanitize(ticket.milestone));
     	}
-    	tags.addAll(settings.getStrings(Plugin.SETTING_FIXED_TICKET_TAGS));
     	return tags;
 	}
 

@@ -15,6 +15,7 @@
  */
 package com.gitblit.plugin.flowdock.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gitblit.Constants;
@@ -23,6 +24,28 @@ import com.google.gson.annotations.SerializedName;
 
 
 public class Payload {
+
+	public static String sanitize(String value) {
+		StringBuilder sb = new StringBuilder();
+		for (char c : value.toCharArray()) {
+			if (Character.isLetterOrDigit(c)) {
+				sb.append(c);
+			} else {
+				switch (c) {
+				case '-':
+				case '_':
+					sb.append(c);
+					break;
+				case '/':
+					sb.append('_');
+					break;
+				default:
+					continue;
+				}
+			}
+		}
+		return sb.toString();
+	}
 
 	private String source;
 
@@ -141,7 +164,7 @@ public class Payload {
 	}
 
 	public void setProject(String project) {
-		this.project = project;
+		this.project = sanitize(project);
 	}
 
 	public List<String> getTags() {
@@ -149,6 +172,12 @@ public class Payload {
 	}
 
 	public void setTags(List<String> tags) {
+		if (tags != null) {
+			this.tags = new ArrayList<String>();
+			for (String tag : tags) {
+				tags.add(sanitize(tag));
+			}
+		}
 		this.tags = tags;
 	}
 

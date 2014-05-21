@@ -34,6 +34,7 @@ import com.gitblit.Constants;
 import com.gitblit.Keys;
 import com.gitblit.extensions.ReceiveHook;
 import com.gitblit.git.GitblitReceivePack;
+import com.gitblit.manager.IProjectManager;
 import com.gitblit.manager.IRuntimeManager;
 import com.gitblit.models.ProjectModel;
 import com.gitblit.models.RepositoryModel;
@@ -147,24 +148,17 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		String repoUrl = getUrl(repo.name, null, null);
 		String logUrl = getUrl(repo.name, shortRef, null);
 
+		String subject = getSubject(repo, String.format("%s %s created", rType.name().toLowerCase(), shortRef));
 		String msg = String.format("<b>%s</b> has created %s <a href=\"%s\">%s</a> in <a href=\"%s\">%s</a>",
 				user.getDisplayName(), rType.name().toLowerCase(), logUrl, shortRef, repoUrl, StringUtils.stripDotGit(repo.name));
-
-		String project = receivePack.getRepositoryModel().projectPath;
-		ProjectModel projectModel = receivePack.getGitblit().getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
 
 		List<String> tags = getTags(repo);
 
     	Payload payload = new Payload()
     		.from(receivePack.getUserModel())
-    		.subject(msg)
+    		.subject(subject)
     		.content(msg)
-    		.project(project)
+    		.project(getProject(repo))
     		.tags(tags)
     		.link(repoUrl);
 
@@ -185,6 +179,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		RepositoryModel repo = receivePack.getRepositoryModel();
 		String shortRef = Repository.shortenRefName(cmd.getRefName());
 		String repoUrl = getUrl(repo.name, null, null);
+		String subjectMessage;
 
 		List<RevCommit> commits = null;
 		String action;
@@ -193,6 +188,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		case TAG:
 			// commit link
 			url = getUrl(repo.name, null, shortRef);
+			subjectMessage = String.format("tag %s MOVED", shortRef);
 			action = "<b>MOVED</b> tag";
 			break;
 		default:
@@ -205,8 +201,10 @@ public class FlowDockReceiveHook extends ReceiveHook {
 				} else {
 					action = String.format("pushed %d commits to", commits.size());
 				}
+				subjectMessage = action + " " + shortRef;
 			} else {
 				action = "<b>REWRITTEN</b>";
+				subjectMessage = String.format("%s branch has been REWRITTEN", shortRef);
 			}
 			break;
 		}
@@ -263,21 +261,14 @@ public class FlowDockReceiveHook extends ReceiveHook {
 			}
 		}
 
-		String project = receivePack.getRepositoryModel().projectPath;
-		ProjectModel projectModel = receivePack.getGitblit().getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
-
+		String subject = getSubject(repo, subjectMessage);
 		List<String> tags = getTags(repo);
 
     	Payload payload = new Payload()
     		.from(receivePack.getUserModel())
-    		.subject(msg)
+    		.subject(subject)
     		.content(sb.toString())
-    		.project(project)
+    		.project(getProject(repo))
     		.tags(tags)
     		.link(repoUrl);
 
@@ -298,29 +289,39 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		String shortRef = Repository.shortenRefName(cmd.getRefName());
 		String repoUrl = getUrl(repo.name, null, null);
 
+		String subject = getSubject(repo, String.format("%s %s deleted", rType.name().toLowerCase(), shortRef));
 		String msg = String.format("<b>%s</b> has deleted %s <b>%s</b> from <a href=\"%s\">%s</a>",
 				user.getDisplayName(), rType.name().toLowerCase(), shortRef, repoUrl, StringUtils.stripDotGit(repo.name));
-
-		String project = receivePack.getRepositoryModel().projectPath;
-		ProjectModel projectModel = receivePack.getGitblit().getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
 
 		List<String> tags = getTags(repo);
 
     	Payload payload = new Payload()
     		.from(receivePack.getUserModel())
-    		.subject(msg)
+    		.subject(subject)
     		.content(msg)
-    		.project(project)
+    		.project(getProject(repo))
     		.tags(tags)
     		.link(repoUrl);
 
     	flowdock.setFlow(repo, payload);
     	flowdock.sendAsync(payload);
+	}
+
+	protected String getSubject(RepositoryModel repository, String message) {
+		return String.format("[%s] %s", StringUtils.stripDotGit(repository.name), message);
+	}
+
+	protected String getProject(RepositoryModel repository) {
+//		return StringUtils.stripDotGit(repository.name);
+    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
+    	String project = StringUtils.getFirstPathElement(repository.name);
+		ProjectModel projectModel = projectManager.getProjectModel(project);
+		if (projectModel != null) {
+			if (!StringUtils.isEmpty(projectModel.title)) {
+				project = projectModel.title;
+			}
+		}
+		return project;
 	}
 
 	protected List<String> getTags(RepositoryModel repository) {
