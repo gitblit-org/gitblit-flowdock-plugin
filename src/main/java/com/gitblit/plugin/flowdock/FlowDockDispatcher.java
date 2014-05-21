@@ -62,7 +62,7 @@ public class FlowDockDispatcher extends DispatchCommand {
 		public void run() throws Failure {
 			UserModel user = getContext().getClient().getUser();
 
-		    Payload payload = new Payload();
+		    MessagePayload payload = new MessagePayload();
 		    payload.subject("Test message from Gitblit");
 		    payload.content("Test message sent from Gitblit");
 		    payload.from(user);
@@ -101,7 +101,7 @@ public class FlowDockDispatcher extends DispatchCommand {
 		public void run() throws Failure {
 			UserModel user = getContext().getClient().getUser();
 
-		    Payload payload = new Payload();
+		    MessagePayload payload = new MessagePayload();
 		    payload.subject(message);
 		    payload.content(message);
 		    payload.from(user);

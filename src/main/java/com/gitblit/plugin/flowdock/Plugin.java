@@ -24,8 +24,6 @@ import com.gitblit.servlet.GitblitContext;
 
 public class Plugin extends GitblitPlugin {
 
-	public static final String SETTING_DEFAULT_FLOW = "flowdock.defaultFlow";
-
 	public static final String SETTING_DEFAULT_TOKEN = "flowdock.defaultToken";
 
 	public static final String SETTING_FIXED_COMMIT_TAGS = "flowdock.fixedCommitTags";

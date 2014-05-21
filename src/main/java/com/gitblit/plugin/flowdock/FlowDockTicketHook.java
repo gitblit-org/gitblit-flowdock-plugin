@@ -110,7 +110,7 @@ public class FlowDockTicketHook extends TicketHook {
 
     	fields(sb, ticket, ticket.changes.get(0), fieldExclusions);
 
-    	Payload payload = new Payload()
+    	MessagePayload payload = new MessagePayload()
     		.from(authorModel)
     		.subject(subject)
     		.content(sb.toString())
@@ -308,7 +308,7 @@ public class FlowDockTicketHook extends TicketHook {
 
     	String ticketUrl = getUrl(ticket);
 
-    	Payload payload = new Payload()
+    	MessagePayload payload = new MessagePayload()
     		.from(authorModel)
     		.subject(subject)
     		.content(sb.toString())
@@ -355,7 +355,7 @@ public class FlowDockTicketHook extends TicketHook {
     	}
 
     	if (!StringUtils.isEmpty(ticket.milestone)) {
-    		tags.add(Payload.sanitize(ticket.milestone));
+    		tags.add(ticket.milestone);
     	}
     	return tags;
 	}

@@ -114,12 +114,7 @@ public class FlowDock implements IManager {
 			return;
 		}
 
-		String defaultFlow = runtimeManager.getSettings().getString(Plugin.SETTING_DEFAULT_FLOW, "main");
-		if (!StringUtils.isEmpty(defaultFlow)) {
-			payload.setFlow(defaultFlow + "-" + repository.projectPath);
-		} else {
-			payload.setFlow(repository.projectPath);
-		}
+		payload.setFlow(repository.projectPath);
 	}
 
 	/**
@@ -145,15 +140,13 @@ public class FlowDock implements IManager {
 
 		if (StringUtils.isEmpty(flow)) {
 			// default flow
-			flow = runtimeManager.getSettings().getString(Plugin.SETTING_DEFAULT_FLOW, "main");
 			token = runtimeManager.getSettings().getString(Plugin.SETTING_DEFAULT_TOKEN, null);
 		} else {
 			// specified flow, validate token
 			token = runtimeManager.getSettings().getString(String.format(Plugin.SETTING_FLOW_TOKEN, flow), null);
 			if (StringUtils.isEmpty(token)) {
-				flow = runtimeManager.getSettings().getString(Plugin.SETTING_DEFAULT_FLOW, "main");
 				token = runtimeManager.getSettings().getString(Plugin.SETTING_DEFAULT_TOKEN, null);
-				log.warn("No FlowDock API token specified for '{}', defaulting to '{}'", payload.getFlow(), flow);
+				log.warn("No FlowDock API token specified for '{}', defaulting to default flow'", payload.getFlow());
 				log.warn("Please set '{} = TOKEN' in gitblit.properties", String.format(Plugin.SETTING_FLOW_TOKEN, flow));
 			}
 		}

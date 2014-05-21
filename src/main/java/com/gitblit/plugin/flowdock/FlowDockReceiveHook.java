@@ -151,7 +151,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 
 		List<String> tags = getTags(repo);
 
-    	Payload payload = new Payload()
+    	MessagePayload payload = new MessagePayload()
     		.from(receivePack.getUserModel())
     		.subject(subject)
     		.content(msg)
@@ -262,7 +262,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		String subject = getSubject(repo, subjectMessage);
 		List<String> tags = getTags(repo);
 
-    	Payload payload = new Payload()
+    	MessagePayload payload = new MessagePayload()
     		.from(receivePack.getUserModel())
     		.subject(subject)
     		.content(sb.toString())
@@ -294,7 +294,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 
 		List<String> tags = getTags(repo);
 
-    	Payload payload = new Payload()
+    	MessagePayload payload = new MessagePayload()
     		.from(receivePack.getUserModel())
     		.subject(subject)
     		.content(msg)

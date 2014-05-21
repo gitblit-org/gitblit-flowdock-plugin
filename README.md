@@ -18,14 +18,12 @@ Alternatively, you can download the zip and manually copy it to your `${baseFold
 
 ### Setup
 
-At a bare minimum you'll need two settings configured in `gitblit.properties`.
+At a bare minimum you'll need one setting configured in `gitblit.properties`.
 
-    flowdock.defaultFlow = aFlow
     flowdock.defaultToken = aToken
 
 If you have the `powertools` plugin installed, you may configure this over SSH:
 
-    ssh host gb config flowdock.defaultFlow main
     ssh host gb config flowdock.defaultToken aToken
 
 There a handful of additional optional settings:
@@ -59,19 +57,14 @@ flowdock.fixedTicketTags = ticket
 
 *flowdock.useProjectFlows* allows you to shard Gitblit activity by the repository project.  This may fit better with any security model you may have in place.  These flows *must* already exist in FlowDock, the plugin will not create them for you.
 
-How are project flows named?
-
-Project flows are named as *flowdock.defaultFlow* -project, where *project* is the first directory element of the repository path.  If *project* is empty, the *flowdock.defaultFlow* is used.
-
 <pre>
-flowdock.defaultFlow = gb
 flowdock.defaultToken = aToken
 flowdock.useProjectFlows = true
-flowdock.gb-network.token = 12345
+flowdock.network.token = 12345
 </pre>
 
-- For the *network/a/b/myrepo.git* repository, the flow would be *gb-network*.
-- For the *test.git* repository, the flow would be *gb*.
+- For the *network/a/b/myrepo.git* repository, the flow would be *network*.
+- For the *test.git* repository, the flow would be the default flow.
 
 ### Usage
 
