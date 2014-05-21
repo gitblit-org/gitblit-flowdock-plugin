@@ -34,12 +34,9 @@ import com.gitblit.Constants;
 import com.gitblit.Keys;
 import com.gitblit.extensions.ReceiveHook;
 import com.gitblit.git.GitblitReceivePack;
-import com.gitblit.manager.IProjectManager;
 import com.gitblit.manager.IRuntimeManager;
-import com.gitblit.models.ProjectModel;
 import com.gitblit.models.RepositoryModel;
 import com.gitblit.models.UserModel;
-import com.gitblit.plugin.flowdock.entity.Payload;
 import com.gitblit.servlet.GitblitContext;
 import com.gitblit.utils.ActivityUtils;
 import com.gitblit.utils.StringUtils;
@@ -159,6 +156,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
     		.subject(subject)
     		.content(msg)
     		.project(getProject(repo))
+    		.source(getSource(repo))
     		.tags(tags)
     		.link(repoUrl);
 
@@ -269,6 +267,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
     		.subject(subject)
     		.content(sb.toString())
     		.project(getProject(repo))
+    		.source(getSource(repo))
     		.tags(tags)
     		.link(repoUrl);
 
@@ -300,6 +299,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
     		.subject(subject)
     		.content(msg)
     		.project(getProject(repo))
+    		.source(getSource(repo))
     		.tags(tags)
     		.link(repoUrl);
 
@@ -312,16 +312,12 @@ public class FlowDockReceiveHook extends ReceiveHook {
 	}
 
 	protected String getProject(RepositoryModel repository) {
-//		return StringUtils.stripDotGit(repository.name);
-    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
-    	String project = StringUtils.getFirstPathElement(repository.name);
-		ProjectModel projectModel = projectManager.getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
-		return project;
+		// Flowdock supports very limited characters so we strip the repository name
+		return StringUtils.stripDotGit(StringUtils.getLastPathElement(repository.name));
+	}
+
+	protected String getSource(RepositoryModel repository) {
+		return Constants.NAME;
 	}
 
 	protected List<String> getTags(RepositoryModel repository) {

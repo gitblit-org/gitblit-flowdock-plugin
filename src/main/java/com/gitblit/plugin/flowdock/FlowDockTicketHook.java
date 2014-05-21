@@ -41,18 +41,15 @@ import com.gitblit.IStoredSettings;
 import com.gitblit.Keys;
 import com.gitblit.extensions.TicketHook;
 import com.gitblit.manager.IGitblit;
-import com.gitblit.manager.IProjectManager;
 import com.gitblit.manager.IRepositoryManager;
 import com.gitblit.manager.IRuntimeManager;
 import com.gitblit.manager.IUserManager;
-import com.gitblit.models.ProjectModel;
 import com.gitblit.models.RepositoryModel;
 import com.gitblit.models.TicketModel;
 import com.gitblit.models.TicketModel.Change;
 import com.gitblit.models.TicketModel.Patchset;
 import com.gitblit.models.TicketModel.Review;
 import com.gitblit.models.UserModel;
-import com.gitblit.plugin.flowdock.entity.Payload;
 import com.gitblit.servlet.GitblitContext;
 import com.gitblit.utils.ActivityUtils;
 import com.gitblit.utils.ArrayUtils;
@@ -118,6 +115,7 @@ public class FlowDockTicketHook extends TicketHook {
     		.subject(subject)
     		.content(sb.toString())
     		.project(getProject(ticket))
+    		.source(getSource(ticket))
     		.tags(getTags(ticket))
     		.link(ticketUrl);
 
@@ -315,6 +313,7 @@ public class FlowDockTicketHook extends TicketHook {
     		.subject(subject)
     		.content(sb.toString())
     		.project(getProject(ticket))
+    		.source(getSource(ticket))
     		.tags(getTags(ticket))
     		.link(ticketUrl);
 
@@ -323,20 +322,16 @@ public class FlowDockTicketHook extends TicketHook {
     }
 
 	protected String getSubject(TicketModel ticket, String message) {
-		return String.format("[%s-%s] %s", StringUtils.stripDotGit(ticket.repository), ticket.number, ticket.title);
+		return ticket.title;
 	}
 
 	protected String getProject(TicketModel ticket) {
-//		return StringUtils.stripDotGit(ticket.repository);
-    	IProjectManager projectManager = GitblitContext.getManager(IProjectManager.class);
-    	String project = StringUtils.getFirstPathElement(ticket.repository);
-		ProjectModel projectModel = projectManager.getProjectModel(project);
-		if (projectModel != null) {
-			if (!StringUtils.isEmpty(projectModel.title)) {
-				project = projectModel.title;
-			}
-		}
-		return project;
+		// Flowdock supports very limited characters so we strip the repository name
+		return StringUtils.stripDotGit(StringUtils.getLastPathElement(ticket.repository));
+	}
+
+	protected String getSource(TicketModel ticket) {
+		return Constants.NAME;
 	}
 
 	protected List<String> getTags(TicketModel ticket) {

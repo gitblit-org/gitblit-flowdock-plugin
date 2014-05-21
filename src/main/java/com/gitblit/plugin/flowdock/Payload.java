@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.gitblit.plugin.flowdock.entity;
+package com.gitblit.plugin.flowdock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +104,11 @@ public class Payload {
 		return this;
 	}
 
+	public Payload source(String source) {
+		setSource(source);
+		return this;
+	}
+
 	public Payload tags(List<String> tags) {
 		setTags(tags);
 		return this;
@@ -165,6 +170,14 @@ public class Payload {
 
 	public void setProject(String project) {
 		this.project = sanitize(project);
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = sanitize(source);
 	}
 
 	public List<String> getTags() {
