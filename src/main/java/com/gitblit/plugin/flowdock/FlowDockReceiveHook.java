@@ -207,7 +207,6 @@ public class FlowDockReceiveHook extends ReceiveHook {
 		RevWalk walk = receivePack.getRevWalk();
 		walk.reset();
 		walk.sort(RevSort.TOPO);
-		walk.sort(RevSort.REVERSE, true);
 		try {
 			RevCommit tip = walk.parseCommit(receivePack.getRepository().resolve(tipId));
 			RevCommit base = walk.parseCommit(receivePack.getRepository().resolve(baseId));
