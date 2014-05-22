@@ -212,7 +212,7 @@ public class FlowDock implements IManager {
 			log.error("FlowDock returned:");
 			log.error(result);
 
-			throw new RuntimeException(result);
+			throw new IOException(String.format("FlowDock Error (%s): %s", rc, result));
 		}
 	}
 
