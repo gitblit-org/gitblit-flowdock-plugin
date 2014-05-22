@@ -68,7 +68,7 @@ public class FlowDockDispatcher extends DispatchCommand {
 		    payload.from(user);
 
 		    if (!StringUtils.isEmpty(flow)) {
-		    	payload.flow(flow);
+		    	payload.setFlow(flow);
 		    }
 
 			try {
@@ -107,7 +107,7 @@ public class FlowDockDispatcher extends DispatchCommand {
 		    payload.from(user);
 
 		    if (!StringUtils.isEmpty(flow)) {
-		    	payload.flow(flow);
+		    	payload.setFlow(flow);
 		    }
 
 			IRuntimeManager runtimeManager = GitblitContext.getManager(IRuntimeManager.class);

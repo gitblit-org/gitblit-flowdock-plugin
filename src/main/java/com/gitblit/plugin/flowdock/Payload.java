@@ -16,6 +16,11 @@
 package com.gitblit.plugin.flowdock;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.gitblit.Constants;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Parent class of payloads.
@@ -51,9 +56,18 @@ public abstract class Payload implements Serializable {
 
 	private transient String flow;
 
-	public Payload flow(String flow) {
-		setFlow(flow);
-		return this;
+	private String source;
+
+	@SerializedName("from_name")
+	private String fromName;
+
+	@SerializedName("from_address")
+	private String fromAddress;
+
+	private List<String> tags;
+
+	public Payload() {
+		this.source = Constants.NAME;
 	}
 
 	public String getFlow() {
@@ -64,5 +78,45 @@ public abstract class Payload implements Serializable {
 		this.flow = flow;
 	}
 
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = sanitize(source);
+	}
+
+	public String getFromName() {
+		return fromName;
+	}
+
+	public void setFromName(String name) {
+		this.fromName = name;
+	}
+
+	public String getFromAddress() {
+		return fromAddress;
+	}
+
+	public void setFromAddress(String address) {
+		this.fromAddress = address;
+	}
+
+	public List<String> getTags() {
+		return tags;
+	}
+
+	public void setTags(List<String> tags) {
+		if (tags != null) {
+			this.tags = new ArrayList<String>();
+			for (String tag : tags) {
+				tags.add(sanitize(tag));
+			}
+		}
+		this.tags = tags;
+	}
+
 	public abstract String getEndPoint(String token);
+
+	public abstract boolean postForm();
 }

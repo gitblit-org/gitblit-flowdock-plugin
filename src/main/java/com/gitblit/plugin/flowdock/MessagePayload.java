@@ -16,10 +16,8 @@
 package com.gitblit.plugin.flowdock;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.gitblit.Constants;
 import com.gitblit.models.UserModel;
 import com.google.gson.annotations.SerializedName;
 
@@ -33,34 +31,25 @@ public class MessagePayload extends Payload  implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String source;
-
 	private String subject;
 
 	private String content;
-
-	@SerializedName("from_name")
-	private String fromName;
-
-	@SerializedName("from_address")
-	private String fromAddress;
 
 	@SerializedName("reply_to")
 	private String replyTo;
 
 	private String project;
 
-	private List<String> tags;
-
 	private String link;
-
-	public MessagePayload() {
-		this.source = Constants.NAME;
-	}
 
 	@Override
 	public String getEndPoint(String token) {
 		return String.format("https://api.flowdock.com/v1/messages/team_inbox/%s", token);
+	}
+
+	@Override
+	public boolean postForm() {
+		return false;
 	}
 
 	public MessagePayload subject(String subject) {
@@ -124,22 +113,6 @@ public class MessagePayload extends Payload  implements Serializable {
 		this.content = content;
 	}
 
-	public String getFromName() {
-		return fromName;
-	}
-
-	public void setFromName(String name) {
-		this.fromName = name;
-	}
-
-	public String getFromAddress() {
-		return fromAddress;
-	}
-
-	public void setFromAddress(String address) {
-		this.fromAddress = address;
-	}
-
 	public String getReplyTo() {
 		return replyTo;
 	}
@@ -154,28 +127,6 @@ public class MessagePayload extends Payload  implements Serializable {
 
 	public void setProject(String project) {
 		this.project = sanitize(project);
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = sanitize(source);
-	}
-
-	public List<String> getTags() {
-		return tags;
-	}
-
-	public void setTags(List<String> tags) {
-		if (tags != null) {
-			this.tags = new ArrayList<String>();
-			for (String tag : tags) {
-				tags.add(sanitize(tag));
-			}
-		}
-		this.tags = tags;
 	}
 
 	public String getLink() {

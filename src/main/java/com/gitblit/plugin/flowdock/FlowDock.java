@@ -19,17 +19,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreProtocolPNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +44,7 @@ import com.gitblit.Constants;
 import com.gitblit.manager.IManager;
 import com.gitblit.manager.IRuntimeManager;
 import com.gitblit.models.RepositoryModel;
+import com.gitblit.utils.JsonUtils.GmtDateTypeAdapter;
 import com.gitblit.utils.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -151,23 +158,29 @@ public class FlowDock implements IManager {
 			}
 		}
 
-
-		String flowdockUrl = String.format("https://api.flowdock.com/v1/messages/team_inbox/%s", token);
-
-		Gson gson = new GsonBuilder().create();
+		Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new GmtDateTypeAdapter()).create();
+		String json = gson.toJson(payload);
 
 		HttpClient client = new DefaultHttpClient();
+		client.getParams().setParameter(AllClientPNames.CONNECTION_TIMEOUT, 5000);
+		client.getParams().setParameter(AllClientPNames.SO_TIMEOUT, 5000);
+
+		String flowdockUrl = payload.getEndPoint(token);
 		HttpPost post = new HttpPost(flowdockUrl);
 		post.getParams().setParameter(CoreProtocolPNames.USER_AGENT, Constants.NAME + "/" + Constants.getVersion());
 		post.getParams().setParameter(CoreProtocolPNames.HTTP_CONTENT_CHARSET, "UTF-8");
 
-		client.getParams().setParameter(AllClientPNames.CONNECTION_TIMEOUT, 5000);
-		client.getParams().setParameter(AllClientPNames.SO_TIMEOUT, 5000);
-
-		String body = gson.toJson(payload);
-		StringEntity entity = new StringEntity(body, "UTF-8");
-		entity.setContentType("application/json");
-		post.setEntity(entity);
+		if (payload.postForm()) {
+			// post as a form with a "payload" value
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>(1);
+			nvps.add(new BasicNameValuePair("payload",json));
+			post.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+		} else {
+			// post as JSON
+			StringEntity entity = new StringEntity(json, "UTF-8");
+			entity.setContentType("application/json");
+			post.setEntity(entity);
+		}
 
 		HttpResponse response = client.execute(post);
 		int rc = response.getStatusLine().getStatusCode();
@@ -194,7 +207,7 @@ public class FlowDock implements IManager {
 			}
 
 			log.error("FlowDock plugin sent:");
-			log.error(body);
+			log.error(json);
 			log.error("FlowDock returned:");
 			log.error(result);
 

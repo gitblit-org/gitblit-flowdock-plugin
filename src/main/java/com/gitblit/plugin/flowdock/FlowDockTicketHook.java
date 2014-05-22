@@ -336,7 +336,7 @@ public class FlowDockTicketHook extends TicketHook {
 
 	protected List<String> getTags(TicketModel ticket) {
     	List<String> tags = new ArrayList<String>();
-    	tags.add("ticket-" + ticket.number);
+    	tags.add(String.valueOf(ticket.number));
     	tags.add(ticket.type.name().toLowerCase());
     	tags.addAll(settings.getStrings(Plugin.SETTING_FIXED_TICKET_TAGS));
 
