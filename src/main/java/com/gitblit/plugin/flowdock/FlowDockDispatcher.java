@@ -83,13 +83,16 @@ public class FlowDockDispatcher extends DispatchCommand {
 
 	@CommandMetaData(name = "send", aliases = { "post" }, description = "Asynchronously post a message")
 	@UsageExamples(examples = {
-			@UsageExample(syntax = "${cmd} -m \"'this is a test'\"", description = "Asynchronously posts a message to the default flow"),
-			@UsageExample(syntax = "${cmd} myFlow -m \"'this is a test'\"", description = "Asynchronously posts a message to myFlow")
+			@UsageExample(syntax = "${cmd} -s\"'this is my subject'\" -m \"'this is a test'\"", description = "Asynchronously posts a message to the default flow"),
+			@UsageExample(syntax = "${cmd} myFlow -s\"'this is my subject'\" -m \"'this is a test'\"", description = "Asynchronously posts a message to myFlow")
 	})
 	public static class MessageCommand extends SshCommand {
 
 		@Argument(index = 0, metaVar = "FLOW", usage = "Destination Flow for message")
 		String flow;
+
+		@Option(name = "--subject", aliases = {"-s" }, metaVar = "-|SUBJECT", required = true)
+		String subject;
 
 		@Option(name = "--message", aliases = {"-m" }, metaVar = "-|MESSAGE", required = true)
 		String message;
@@ -102,7 +105,7 @@ public class FlowDockDispatcher extends DispatchCommand {
 			UserModel user = getContext().getClient().getUser();
 
 		    MessagePayload payload = new MessagePayload();
-		    payload.subject(message);
+		    payload.subject(subject);
 		    payload.content(message);
 		    payload.from(user);
 

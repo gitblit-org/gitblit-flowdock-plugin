@@ -161,6 +161,8 @@ public class FlowDock implements IManager {
 		Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new GmtDateTypeAdapter()).create();
 		String json = gson.toJson(payload);
 
+		log.info(json);
+
 		HttpClient client = new DefaultHttpClient();
 		client.getParams().setParameter(AllClientPNames.CONNECTION_TIMEOUT, 5000);
 		client.getParams().setParameter(AllClientPNames.SO_TIMEOUT, 5000);

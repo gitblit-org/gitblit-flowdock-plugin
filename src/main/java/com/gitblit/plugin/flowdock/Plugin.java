@@ -44,6 +44,8 @@ public class Plugin extends GitblitPlugin {
 
 	public static final String SETTING_POST_TAGS = "flowdock.postTags";
 
+	public static final String SETTING_TICKET_PAYLOAD_GENERATOR = "flowdock.ticketPayloadGenerator";
+
 	public Plugin(PluginWrapper wrapper) {
 		super(wrapper);
 

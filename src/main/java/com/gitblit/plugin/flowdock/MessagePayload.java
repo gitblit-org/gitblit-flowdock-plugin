@@ -18,6 +18,7 @@ package com.gitblit.plugin.flowdock;
 import java.io.Serializable;
 import java.util.List;
 
+import com.gitblit.Constants;
 import com.gitblit.models.UserModel;
 import com.google.gson.annotations.SerializedName;
 
@@ -30,6 +31,14 @@ import com.google.gson.annotations.SerializedName;
 public class MessagePayload extends Payload  implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	private String source = Constants.NAME;
+
+	@SerializedName("from_name")
+	private String fromName;
+
+	@SerializedName("from_address")
+	private String fromAddress;
 
 	private String subject;
 
@@ -95,6 +104,30 @@ public class MessagePayload extends Payload  implements Serializable {
 	public MessagePayload link(String link) {
 		setLink(link);
 		return this;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = sanitize(source);
+	}
+
+	public String getFromName() {
+		return fromName;
+	}
+
+	public void setFromName(String name) {
+		this.fromName = name;
+	}
+
+	public String getFromAddress() {
+		return fromAddress;
+	}
+
+	public void setFromAddress(String address) {
+		this.fromAddress = address;
 	}
 
 	public String getSubject() {

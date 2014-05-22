@@ -102,8 +102,7 @@ public class FlowDockReceiveHook extends ReceiveHook {
 				String diffUrl = getUrl(repo.name, cmd.getOldId().getName(), cmd.getNewId().getName());
 
 				GitPayload payload = new GitPayload()
-				.source(getSource(repo))
-				.from(receivePack.getUserModel())
+				.pusher(receivePack.getUserModel())
 				.repository(repo.name)
 				.repoUrl(repoUrl)
 				.tags(getTags(repo))

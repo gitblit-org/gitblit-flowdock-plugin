@@ -34,24 +34,29 @@ public class GitPayload extends Payload implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@SerializedName("compare")
-	String compareUrl;
-
-	String before;
-
-	String after;
-
-	String ref;
+	private Ident sender;
 
 	@SerializedName("ref_name")
-	String refName;
+	private String refName;
 
-	Repo repository;
+	private Repo repository;
 
-	List<Commit> commits;
+	private List<Commit> commits;
+
+	private int size;
+
+	private String before;
+
+	private String after;
+
+	private String ref;
+
+	@SerializedName("compare")
+	private String compareUrl;
 
 	public GitPayload() {
 		super();
+		this.sender = new Ident();
 		this.repository = new Repo();
 		this.commits = new ArrayList<>();
 	}
@@ -76,18 +81,13 @@ public class GitPayload extends Payload implements Serializable {
 		return this;
 	}
 
-	public GitPayload source(String source) {
-		setSource(source);
-		return this;
+	public GitPayload pusher(UserModel user) {
+		return pusher(user.getDisplayName(), user.emailAddress);
 	}
 
-	public GitPayload from(UserModel user) {
-		return from(user.getDisplayName(), user.emailAddress);
-	}
-
-	public GitPayload from(String name, String address) {
-		setFromName(name);
-		setFromAddress(address);
+	public GitPayload pusher(String name, String email) {
+		this.sender.name = name;
+		this.sender.email = email;
 		return this;
 	}
 
@@ -122,8 +122,27 @@ public class GitPayload extends Payload implements Serializable {
 	}
 
 	public GitPayload add(Commit commit) {
-		this.commits.add(commit);
+		if (commits.size() < 20) {
+			this.commits.add(commit);
+		}
+		this.size++;
 		return this;
+	}
+
+	public String getPusherName() {
+		return sender.name;
+	}
+
+	public void setPusherName(String name) {
+		this.sender.name = name;
+	}
+
+	public String getPusherEmail() {
+		return sender.email;
+	}
+
+	public void setPusherEmail(String email) {
+		this.sender.email = email;
 	}
 
 	public static class Commit implements Serializable {
@@ -164,6 +183,9 @@ public class GitPayload extends Payload implements Serializable {
 		String name;
 
 		String email;
+
+		public Ident() {
+		}
 
 		public Ident(String name, String email) {
 			this.name = name;

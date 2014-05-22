@@ -36,6 +36,7 @@ There a handful of additional optional settings:
     flowdock.postTicketComments = true
     flowdock.postBranches = true
     flowdock.postTags = true
+    flowdock.ticketPayloadGenerator = com.gitblit.plugin.flowdock.TicketEmailGenerator
 
 #### flowdock.fixedCommitTags
 
@@ -65,6 +66,20 @@ flowdock.network.token = 12345
 
 - For the *network/a/b/myrepo.git* repository, the flow would be *network*.
 - For the *test.git* repository, the flow would be the default flow.
+
+#### flowdock.ticketPayloadGenerator
+
+By default, the Gitblit-Flowdock plugin will generate standard Gitblit ticket email notifications and inject that into your flow using the Flowdock PUSH API.
+
+There are two other *experimental* payload generators available.
+
+- com.gitblit.plugin.flowdock.TicketJiraGenerator
+
+The *JIRA* generator will format Gitblit Tickets as JIRA issues and use Flowdock's JIRA endpoint.
+
+- com.gitblit.plugin.flowdock.TicketMessageGenerator
+
+The *Message* generator will custom format Gitblit Tickets in a way similar to the default *Email* generator.
 
 ### Usage
 
