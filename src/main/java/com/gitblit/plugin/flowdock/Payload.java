@@ -38,6 +38,7 @@ public abstract class Payload implements Serializable {
 				switch (c) {
 				case '-':
 				case '_':
+				case '.':
 					sb.append(c);
 					break;
 				case '/':
