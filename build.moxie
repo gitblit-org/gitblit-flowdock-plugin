@@ -10,7 +10,7 @@ name: gitblit-flowdock-plugin
 description: Integrate Gitblit with your FlowDock team
 groupId: com.gitblit.plugin
 artifactId: flowdock
-version: 1.0.0
+version: 1.0.1-SNAPSHOT
 packaging: zip
 inceptionYear: 2014
 organization: gitblit.com
